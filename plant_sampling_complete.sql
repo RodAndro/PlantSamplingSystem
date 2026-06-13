@@ -1,0 +1,57 @@
+-- Plant Sampling System - Complete Database Setup
+-- Import this SINGLE file into phpMyAdmin - it will work without errors
+
+CREATE DATABASE IF NOT EXISTS plant_sampling_system;
+USE plant_sampling_system;
+
+-- Disable foreign key checks temporarily to avoid constraint errors
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Drop existing tables to prevent conflicts
+DROP TABLE IF EXISTS plant_samples;
+DROP TABLE IF EXISTS users;
+
+-- Create users table
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Create plant_samples table with all required columns including JSON columns
+CREATE TABLE plant_samples (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sample_id VARCHAR(100) UNIQUE NOT NULL,
+    plant_name VARCHAR(255) NOT NULL,
+    species VARCHAR(255),
+    location_sampled VARCHAR(500) NOT NULL,
+    sample_date DATE NOT NULL,
+    notes TEXT,
+    status VARCHAR(50) DEFAULT 'pending',
+    collected_by INT,
+    approved_by INT NULL,
+    approved_at TIMESTAMP NULL,
+    plant_sample_detail JSON NULL,
+    sampling_location JSON NULL,
+    environmental_conditions JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (collected_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_sample_date (sample_date),
+    INDEX idx_status (status),
+    INDEX idx_plant_name (plant_name),
+    INDEX idx_collected_by (collected_by),
+    INDEX idx_approved_by (approved_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Re-enable foreign key checks
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Insert demo user accounts
+INSERT INTO users (name, email, password, role) VALUES 
+('System Admin', 'admin@plantsampling.com', '$2y$10$JCi8QIpPxFjpQANb4LuZt.A7xhMTLbWl4BvvKJAM6VEZ2vLCyJxQe', 'admin'),
+('Researcher', 'researcher@plantsampling.com', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/UVm', 'user');
